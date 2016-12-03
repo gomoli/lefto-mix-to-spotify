@@ -1,11 +1,11 @@
 #! /usr/bin/python3
 
-import spotipy
 from pprint import pprint
+import spotipy
 
 spotify = spotipy.Spotify()
 
-def searchTrack(query):
+def search_track(query):
     results = spotify.search(query)
     for track in results['tracks']['items']:
         pprint(track['name'])
