@@ -14,9 +14,9 @@ parser.add_option("-a", "--archive", action="store_true", dest="archive", defaul
 spider = LeftoSpider()
 if options.fresh:
     tracklist = spider.run('fresh')
+    pprint(search_track([track for track in tracklist]))
 elif options.archive:
-    tracklist = spider.run('archive')
+    mixes = spider.run('archive')
+    for mix in mixes:
+        pprint(search_track([track for track in mix]))
 
-query = prepare_spotify_search(tracklist)
-for item in query:
-    pprint(search_track(item))

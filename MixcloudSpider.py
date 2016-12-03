@@ -13,6 +13,8 @@ HREF_RE = re.compile(r'/LeFtOoO/\d{3,}[^/]+/$')
 
 class LeftoSpider(object):
 
+    TRACKLIST = []
+
     @classmethod
     def list_index(cls, url):
         response = urllib.request.urlopen(url)
@@ -41,29 +43,29 @@ class LeftoSpider(object):
             pass
         for comment in possible_comments:
             author = comment.find_previous("a", class_="comment-author")
-            if author['href'] == "/LeFtOoO/":
-                print("HIT! \t Written by %s" % author['href'])
-                track_list = comment.find_next("p")
-                track_list = [track for track in track_list.stripped_strings]
-                pprint(track_list)
-                return track_list
-            else:
-                print("MISS! \t Written by %s" % author['href'])
-                continue
-        return {}
+            if author:
+                if author['href'] == "/LeFtOoO/":
+                    print("HIT! \t Written by %s" % author['href'])
+                    track_list = comment.find_next("p")
+                    track_list = [track for track in track_list.stripped_strings]
+                    pprint(track_list)
+                    return track_list
+                else:
+                    print("MISS! \t Written by %s" % author['href'])
+                    continue
+        return []
 
     @classmethod
     def run(cls, mode):
         index_urls = cls.list_index(BASE_URL)
         if mode == "fresh":
-            mix_soup = cls.visit_mix(urljoin(BASE_URL, index_urls[1]))
+            mix_soup = cls.visit_mix(urljoin(BASE_URL, index_urls[0]))
             track_list = cls.find_tracklist(mix_soup)
             return track_list
         elif mode == "archive":
-            track_list = []
             for index_url in index_urls:
                 mix_soup = cls.visit_mix(urljoin(BASE_URL, index_url))
-                track_list.append(cls.find_tracklist(mix_soup))
-            return track_list
+                cls.TRACKLIST.append(cls.find_tracklist(mix_soup))
+            return cls.TRACKLIST
         else:
             return print("Set a suitable mode: fresh/archive")
