@@ -3,8 +3,10 @@
 import re
 from pprint import pprint
 
-def prepareSpotifySearch(trackList):
+def prepare_spotify_search(track_list):
+    '''
     searchQueryObjects = [re.sub(r'[,&()]*(ft\.)?(- )?', '', track)
-                        for track in trackList]
-    pprint(searchQueryObjects)
-    return searchQueryObjects
+                        for track in track_list]
+    pprint(searchQueryObjects) 
+ '''
+    return track_list
