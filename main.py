@@ -20,5 +20,7 @@ if options.fresh:
 elif options.archive:
     mixes = spider.run('archive')
     for mix in mixes:
-        pprint(search_track([track for track in mix]))
+        track_list = prepare_spotify_search(mix)
+        for track in track_list:
+            search_track(track)
 
