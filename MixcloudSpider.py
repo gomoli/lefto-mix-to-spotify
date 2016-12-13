@@ -6,6 +6,7 @@ import re
 from pprint import pprint
 from bs4 import BeautifulSoup
 
+AUTHOR = '/LeFtOoO/'
 BASE_URL = 'https://www.mixcloud.com/LeFtOoO/'
 PLAYLIST_RE = re.compile(r'\"?([Tt]rack|[Pp]lay)list\"?')
 HREF_RE = re.compile(r'/LeFtOoO/\d{3,}[^/]+/$')
@@ -37,22 +38,36 @@ class LeftoSpider(object):
 
     @classmethod
     def find_tracklist(cls, soup):
-        possible_comments = soup.find_all("p", string=PLAYLIST_RE)
-        # print(possible_comments)
+        # Changed possible_comment search to first look foor lefto as author
+        # TODO: change possible comment iterator to search for tracklist regex
+        possible_comments = soup.find_all(
+            "a", attrs={"class": "comment-author", "href": AUTHOR})
         if not possible_comments:
+            print("No possible comments found")
             pass
-        for comment in possible_comments:
-            author = comment.find_previous("a", class_="comment-author")
-            if author:
-                if author['href'] == "/LeFtOoO/":
-                    print("HIT! \t Written by %s" % author['href'])
+        print("Found %d comments with %s as author" % (len(possible_comments), AUTHOR))
+        print("Checking the first comment")
+        for comment in reversed(possible_comments):
+            comment_body = comment.find_next("div", class_="comment-body")
+            #TODO: Fix the comment_body tracklist search
+            #TODO: Make the following nice(r)
+            if comment_body:
+                track_list = comment.find_next("p")
+                print(track_list)
+                if PLAYLIST_RE.match(track_list.contents):
                     track_list = comment.find_next("p")
-                    track_list = [track for track in track_list.stripped_strings]
+                    track_list = [
+                        track for track in track_list.stripped_strings]
                     pprint(track_list)
                     return track_list
                 else:
-                    print("MISS! \t Written by %s" % author['href'])
-                    continue
+                    track_list = [
+                        track for track in track_list.stripped_strings]
+                    pprint(track_list)
+                    return track_list
+            else:
+                print("Found no good comment body")
+                continue
         return []
 
     @classmethod
