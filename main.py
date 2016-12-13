@@ -1,5 +1,3 @@
-#! /usr/bin/python3
-
 from pprint import pprint
 from optparse import OptionParser
 from MixcloudSpider import LeftoSpider
@@ -13,8 +11,12 @@ parser.add_option("-a", "--archive", action="store_true", dest="archive", defaul
 
 spider = LeftoSpider()
 if options.fresh:
-    tracklist = spider.run('fresh')
-    pprint(search_track([track for track in tracklist]))
+    track_list = spider.run('fresh')
+    track_list = prepare_spotify_search(track_list)
+    for track in track_list:
+        track_id = search_track(track)
+        if track_id:
+            print("\t" + track_id)
 elif options.archive:
     mixes = spider.run('archive')
     for mix in mixes:

@@ -1,5 +1,3 @@
-#! /usr/bin/python3
-
 import urllib.request
 from urllib.parse import urljoin
 import re
@@ -44,31 +42,28 @@ class LeftoSpider(object):
             "a", attrs={"class": "comment-author", "href": AUTHOR})
         if not possible_comments:
             print("No possible comments found")
-            pass
-        print("Found %d comments with %s as author" % (len(possible_comments), AUTHOR))
+            return []
+        print("Found %d comments with %s as author" %
+              (len(possible_comments), AUTHOR))
         print("Checking the first comment")
+
         for comment in reversed(possible_comments):
             comment_body = comment.find_next("div", class_="comment-body")
-            #TODO: Fix the comment_body tracklist search
-            #TODO: Make the following nice(r)
+            # TODO: Fix the comment_body tracklist search
+            # TODO: Make the following nice(r)
             if comment_body:
-                track_list = comment.find_next("p")
-                print(track_list)
-                if PLAYLIST_RE.match(track_list.contents):
-                    track_list = comment.find_next("p")
-                    track_list = [
-                        track for track in track_list.stripped_strings]
-                    pprint(track_list)
-                    return track_list
-                else:
-                    track_list = [
-                        track for track in track_list.stripped_strings]
-                    pprint(track_list)
-                    return track_list
+                track_list_candidates = comment_body.find_all("p")
+                print('Found %d possible track lists' % len(track_list_candidates))
+
+                candidates_contents_size = [
+                    len(candidate.contents) for candidate in track_list_candidates]
+                biggest_candidate = track_list_candidates.pop(
+                    candidates_contents_size.index(max(candidates_contents_size)))
+                track_list = [track for track in biggest_candidate.stripped_strings]
+                return track_list
             else:
                 print("Found no good comment body")
                 continue
-        return []
 
     @classmethod
     def run(cls, mode):
