@@ -23,4 +23,6 @@ elif options.archive:
         track_list = prepare_spotify_search(mix)
         for track in track_list:
             search_track(track)
-
+else:
+    print("Please supply a -f or -a argument.")
+    quit()
