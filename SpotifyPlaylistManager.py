@@ -14,3 +14,6 @@ def search_track(track):
     else:
         print('No results found')
         return
+
+def add_to_playlist(track, playlist):
+    return
