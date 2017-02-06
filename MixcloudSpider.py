@@ -19,7 +19,7 @@ class LeftoSpider(object):
         response = urllib.request.urlopen(url)
         html = response.read().decode('utf-8')
         soup = BeautifulSoup(html, 'lxml')
-        entries = soup.find_all("div", class_="column-4 masonry-")
+        entries = soup.find_all("section", class_="card")
         entries = [entry.find(
             "a", attrs={"m-ref-category": "play"}) for entry in entries]
         index_urls = list([entry['href'] for entry in entries])
