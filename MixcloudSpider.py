@@ -1,11 +1,10 @@
-#! /usr/bin/python3
-
 import urllib.request
 from urllib.parse import urljoin
 import re
 from pprint import pprint
 from bs4 import BeautifulSoup
 
+AUTHOR = '/LeFtOoO/'
 BASE_URL = 'https://www.mixcloud.com/LeFtOoO/'
 PLAYLIST_RE = re.compile(r'\"?([Tt]rack|[Pp]lay)list\"?')
 HREF_RE = re.compile(r'/LeFtOoO/\d{3,}[^/]+/$')
@@ -13,12 +12,14 @@ HREF_RE = re.compile(r'/LeFtOoO/\d{3,}[^/]+/$')
 
 class LeftoSpider(object):
 
+    TRACKLIST = []
+
     @classmethod
     def list_index(cls, url):
         response = urllib.request.urlopen(url)
         html = response.read().decode('utf-8')
         soup = BeautifulSoup(html, 'lxml')
-        entries = soup.find_all("div", class_="column-4 masonry-")
+        entries = soup.find_all("section", class_="card")
         entries = [entry.find(
             "a", attrs={"m-ref-category": "play"}) for entry in entries]
         index_urls = list([entry['href'] for entry in entries])
@@ -35,35 +36,46 @@ class LeftoSpider(object):
 
     @classmethod
     def find_tracklist(cls, soup):
-        possible_comments = soup.find_all("p", string=PLAYLIST_RE)
-        # print(possible_comments)
+        # Changed possible_comment search to first look foor lefto as author
+        # TODO: change possible comment iterator to search for tracklist regex
+        possible_comments = soup.find_all(
+            "a", attrs={"href": AUTHOR})
         if not possible_comments:
-            pass
-        for comment in possible_comments:
-            author = comment.find_previous("a", class_="comment-author")
-            if author['href'] == "/LeFtOoO/":
-                print("HIT! \t Written by %s" % author['href'])
-                track_list = comment.find_next("p")
-                track_list = [track for track in track_list.stripped_strings]
-                pprint(track_list)
-                return track_list
+            print("No possible comments found")
+            return []
+        print("Found %d comments with %s as author" %
+              (len(possible_comments), AUTHOR))
+        print("Checking the first comment")
+
+        for comment in reversed(possible_comments):
+            comment_body = comment.find_next("div", class_="show-comment-content")
+            # TODO: Fix the comment_body tracklist search
+            # TODO: Make the following nice(r)
+            if comment_body:
+                track_list_candidates = comment_body.find_all("p")
+                print('Found %d possible track lists' % len(track_list_candidates))
+
+                candidates_contents_size = [
+                    len(candidate.contents) for candidate in track_list_candidates]
+                biggest_candidate = track_list_candidates.pop(
+                    candidates_contents_size.index(max(candidates_contents_size)))
+                cls.TRACKLIST = [track for track in biggest_candidate.stripped_strings]
+                return cls.TRACKLIST
             else:
-                print("MISS! \t Written by %s" % author['href'])
+                print("Found no good comment body")
                 continue
-        return {}
 
     @classmethod
     def run(cls, mode):
         index_urls = cls.list_index(BASE_URL)
         if mode == "fresh":
-            mix_soup = cls.visit_mix(urljoin(BASE_URL, index_urls[1]))
+            mix_soup = cls.visit_mix(urljoin(BASE_URL, index_urls[0]))
             track_list = cls.find_tracklist(mix_soup)
             return track_list
         elif mode == "archive":
-            track_list = []
             for index_url in index_urls:
                 mix_soup = cls.visit_mix(urljoin(BASE_URL, index_url))
-                track_list.append(cls.find_tracklist(mix_soup))
-            return track_list
+                cls.TRACKLIST.append(cls.find_tracklist(mix_soup))
+            return cls.TRACKLIST
         else:
             return print("Set a suitable mode: fresh/archive")

@@ -1,12 +1,7 @@
-#! /usr/bin/python3
-
 import re
 from pprint import pprint
 
 def prepare_spotify_search(track_list):
-    '''
-    searchQueryObjects = [re.sub(r'[,&()]*(ft\.)?(- )?', '', track)
+    stripped_track_list = [re.sub(r'\.', ' ', track)
                         for track in track_list]
-    pprint(searchQueryObjects) 
- '''
-    return track_list
+    return stripped_track_list
