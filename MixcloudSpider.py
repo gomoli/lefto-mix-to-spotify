@@ -39,7 +39,7 @@ class LeftoSpider(object):
         # Changed possible_comment search to first look foor lefto as author
         # TODO: change possible comment iterator to search for tracklist regex
         possible_comments = soup.find_all(
-            "a", attrs={"class": "comment-author", "href": AUTHOR})
+            "a", attrs={"href": AUTHOR})
         if not possible_comments:
             print("No possible comments found")
             return []
@@ -48,7 +48,7 @@ class LeftoSpider(object):
         print("Checking the first comment")
 
         for comment in reversed(possible_comments):
-            comment_body = comment.find_next("div", class_="comment-body")
+            comment_body = comment.find_next("div", class_="show-comment-content")
             # TODO: Fix the comment_body tracklist search
             # TODO: Make the following nice(r)
             if comment_body:
@@ -59,8 +59,8 @@ class LeftoSpider(object):
                     len(candidate.contents) for candidate in track_list_candidates]
                 biggest_candidate = track_list_candidates.pop(
                     candidates_contents_size.index(max(candidates_contents_size)))
-                track_list = [track for track in biggest_candidate.stripped_strings]
-                return track_list
+                cls.TRACKLIST = [track for track in biggest_candidate.stripped_strings]
+                return cls.TRACKLIST
             else:
                 print("Found no good comment body")
                 continue
